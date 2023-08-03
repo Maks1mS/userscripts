@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         VK Messages Tooltip
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Maks1mS/userscripts
 // @version      0.1
 // @description  Add tooltip to messages in dialog list
 // @author       Maxim Slipenko

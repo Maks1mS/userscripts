@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Quarkly Upload Image via URL
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Maks1mS/userscripts
 // @version      0.2
 // @description  try to take over the world!
 // @author       Maxim Slipenko

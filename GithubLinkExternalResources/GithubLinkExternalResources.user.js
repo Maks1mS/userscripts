@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Github Link External Resources
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/Maks1mS/userscripts
 // @version      0.1
 // @description  Github Link External Resources
 // @author       Maxim Slipenko
