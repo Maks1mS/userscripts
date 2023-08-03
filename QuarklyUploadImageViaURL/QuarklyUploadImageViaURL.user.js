@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quarkly Upload Image via URL
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       Maxim Slipenko
 // @match        https://quarkly.io/project/*
@@ -34,11 +34,17 @@
                 const finalUrl = r.finalUrl;
                 // TODO: Better filename detection
                 const filename = url.substring(url.lastIndexOf('/')+1);
+                var arr = r.responseHeaders.split('\r\n');
+                var headers = arr.reduce(function (acc, current, i){
+                    var parts = current.split(': ');
+                    acc[parts[0]] = parts[1];
+                    return acc;
+                }, {});
                 const file = new File(
                     [r.response],
                     filename,
                     {
-                        type:"image/jpeg",
+                        type: headers['content-type'],
                         lastModified:new Date().getTime()
                     }
                 );
