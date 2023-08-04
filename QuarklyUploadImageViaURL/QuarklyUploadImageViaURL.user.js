@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Quarkly Upload Image via URL
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.2
+// @version      0.3
 // @description  try to take over the world!
 // @author       Maxim Slipenko
-// @match        https://quarkly.io/project/*
+// @match        https://quarkly.io/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=quarkly.io
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
+// @grant        window.onurlchange
 // ==/UserScript==
 
 (function() {
@@ -15,6 +16,7 @@
 
     const QUARKLY_UPLOAD_BUTTON_ID = 'upload-image-button';
     const UPLOAD_BY_URL_ID = 'upload-image-button-by-url';
+    const QUARKLY_PROJECT_URL_PREFIX = 'https://quarkly.io/project/'
 
     function insertAfter(newNode, existingNode) {
         existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
@@ -70,6 +72,10 @@
         return button
     }
 
+    // TODO: better popup detection
+
+    let timer;
+
     function run() {
         const dest = document.querySelector(`label[for="${QUARKLY_UPLOAD_BUTTON_ID}"]`);
         if (dest) {
@@ -79,7 +85,15 @@
         }
     }
 
-    setInterval(run, 2500);
+    if (window.onurlchange === null) {
+        window.addEventListener('urlchange', (info) => {
+            if (info?.url?.startsWith(QUARKLY_PROJECT_URL_PREFIX)) {
+                timer = setInterval(run, 3000);
+            } else {
+                clearInterval(timer);
+            }
+        });
+    }
 
     var css = `
     #${UPLOAD_BY_URL_ID} {
