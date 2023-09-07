@@ -2,7 +2,7 @@
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
 // @version      0.1
-// @description  try to take over the world!
+// @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=steampowered.com
