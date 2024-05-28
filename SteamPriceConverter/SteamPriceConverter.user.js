@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.1
+// @version      0.2
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -50,8 +50,8 @@
 
     function getCurrentValute() {
         const walletText = document.getElementById('header_wallet_balance').innerText;
-        const symbol = Object.keys(SYMBOL_TO_CODE_MAPPING).find(symbol => walletText.includes(symbol))
-        return SYMBOL_TO_CODE_MAPPING[symbol];
+        state.source_symbol = Object.keys(SYMBOL_TO_CODE_MAPPING).find(symbol => walletText.includes(symbol))
+        return SYMBOL_TO_CODE_MAPPING[state.source_symbol];
     }
 
     async function main() {
@@ -69,7 +69,7 @@
     }
 
     function replace(convert) {
-        let r = document.evaluate('//text()[contains(., \"₸\")]',document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let r = document.evaluate(`//text()[contains(., \"${state.source_symbol}\")]`,document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < r.snapshotLength; i++) {
             let n = r.snapshotItem(i);
