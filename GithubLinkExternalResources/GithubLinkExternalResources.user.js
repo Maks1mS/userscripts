@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Github Link External Resources
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.1
+// @version      0.2
 // @description  Github Link External Resources
 // @author       Maxim Slipenko
 // @match        https://github.com/*
@@ -30,28 +30,29 @@
     }
 
     function t(key) {
-        const currentLang = navigator.language;
-        return translations?.[currentLang]?.[key] ?? translations?.['en-US'] ?? key;
+        const currentLang = navigator.language || 'en-US';
+        const shortLang = currentLang.split('-')[0];
+        return translations?.[currentLang]?.[key] ?? translations?.[shortLang]?.[key] ?? translations?.['en-US']?.[key] ?? key;
     }
 
     const settingsId = 'GithubLinkExternalResources';
 
     const gmc = new GM_config({
-		events: {
-			save () {
-				this.close();
-			},
-		},
-		fields: {
-			data: {
-				label: t('config'),
-				type: 'textarea',
-                // github prefix org or org/repo | prefix | url ($1 - numeric identifier)
+        events: {
+            save () {
+                this.close();
+            },
+        },
+        fields: {
+            data: {
+                label: t('config'),
+                type: 'textarea',
+                // github prefix org or org/repo | prefix | url ($2 - numeric identifier)
                 default: 'pyside | PYSIDE- | https://bugreports.qt.io/browse/$1'
-			},
-		},
-		id: settingsId,
-		title: 'Github Link External Resources',
+            },
+        },
+        id: settingsId,
+        title: 'Github Link External Resources',
         css: `
         #${settingsId} .field_label {
            font-size: 20px;
@@ -62,36 +63,37 @@
         }`
 	});
 
-	GM_registerMenuCommand(t('settings'), () => gmc.open());
+    GM_registerMenuCommand(t('settings'), () => gmc.open());
 
     const selector = '.js-issue-title.markdown-title,' +
           '.js-navigation-open.markdown-title,' +
+          '.commit-title.markdown-title,' +
           '#partial-actions-workflow-runs .Link--primary,' + // actions
           '.repository-content h3.PageHeader-title > span > span,' + // actions
           'div.my-2.Details-content--hidden,' + // commit message
           '.wb-break-word.width-fit > .color-fg-default.lh-0.mb-2.markdown-title'; // sidebar
 
     const replace = (node, row) => {
-         if (!node) return;
-         const re = new RegExp(`\\b(${row[1]}\\d+)\\b(?!<\\/a>|")`, 'g');
-         node.innerHTML = node.innerHTML.replace(re, `<a href="${row[2]}">$1</a>`);
+        if (!node) return;
+        const re = new RegExp(`\\b(${row[1]}(\\d+))\\b(?!<\\/a>|")`, 'g');
+        console.log(re);
+        node.innerHTML = node.innerHTML.replace(re, `<a href="${row[2]}">$1</a>`);
     }
 
     let data = '';
 
     const run = (url) => {
         const row = data.find(row => url.startsWith(`https://github.com/${row[0]}`));
-
-        console.log(row)
-
+        console.log(data);
+        if (!row) return;
+        console.log(row);
         const matches = document.querySelectorAll(selector)
         matches.forEach(n => replace(n, row));
     }
 
     const onInit = gmc => new Promise(resolve => {
-       let isInit = () => setTimeout(() =>
-       gmc.isInit ? resolve() : isInit(), 0);
-       isInit();
+        let isInit = () => setTimeout(() => gmc.isInit ? resolve() : isInit(), 0);
+        isInit();
     });
 
     onInit(gmc).then(() => {
@@ -102,4 +104,5 @@
             });
         }
     });
+
 })();
