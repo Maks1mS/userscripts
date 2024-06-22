@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         БЕСПЛАТНЫЕ ПВЗ ОЗОН
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.1
+// @version      0.2
 // @description  Заменяет партнерские ПВЗ на понятные адреса 
 // @author       Maxim Slipenko
 // @match        https://www.ozon.ru/*
@@ -99,13 +99,11 @@
                 updateInfo(element);
                 addObserver(element, () => {
                     updateInfo(element);
-                });   
+                });
             }
         }
 
         function updateInfoALL() {
-            console.log('updateall!');
-
             const headerAddress = qs('[data-widget="addressBookBarWeb"] .tsBody400Small');
             const commonAddressBook = qsa('[data-widget="commonAddressBook"] .tsBody500Medium');
             const delivery = qsa('[data-widget="orderDeliveryDetails"] .tsBody500Medium');
@@ -120,41 +118,52 @@
             updateInfoALL();
         }
 
+        async function onSelectorAdd(targetNode, selector, callback) {
+            function check(s) {
+                const r = qs(s);
+                if (r) {
+                    callback(r);
+                }
+            }
+
+            function checkSelector() {
+                if (Array.isArray(selector)) {
+                    selector.forEach(check);
+                }
+                check(selector);
+            }
+            checkSelector();
+            function handle(mutationsList) {
+                for (let mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        checkSelector();
+                    }
+                }
+            }
+            addObserver(targetNode, handle, { childList: true, subtree: true });
+        }
+
         let called = false;
 
         function fullExecute() {
             if (called) return;
-
             called = true;
-
-            updateInfoPeriodically(5000);
-
-            function handleNewElement(mutationsList) {
-                for (let mutation of mutationsList) {
-                    if (mutation.type === 'childList') {
-                        mutation.addedNodes.forEach(node => {
-                            if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('vue-portal-target')) {
-                                setTimeout(() => {
-                                    updateInfoALL();
-                                }, 1000);
-                            }
-                        });
-                    }
-                }
-            }
-
-            const observer = new MutationObserver(handleNewElement);
-
-            const targetNode = document.body;
-            const config = { childList: true, subtree: true };
-
-            observer.observe(targetNode, config);
+            updateInfoALL();
+            onSelectorAdd(document.body, [
+                '[data-widget="commonAddressBook"]', 
+            ], updateInfoALL);
         }
 
         window.addEventListener('popstate', fullExecute);
         window.addEventListener('load', fullExecute);
         document.addEventListener('DOMContentLoaded', fullExecute);
-        setTimeout(fullExecute, 2500);
+
+        if (document.readyState == "complete" ||
+            document.readyState == "loaded" ||
+            document.readyState == "interactive"
+        ) {
+            fullExecute();
+        }
     }
 
     main();
