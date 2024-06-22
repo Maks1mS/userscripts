@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.4
+// @version      0.5
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -78,10 +78,22 @@
 
         for (let i = 0; i < r.snapshotLength; i++) {
             let n = r.snapshotItem(i);
-            const value = parseFloat(n.textContent.replace(" ", "").replace(',', '.'))
-
-            n.replaceWith(`${convert(value)} ₽ / ${value} ${state.source_symbol}`);
-            console.log(n)
+            let textContent = n.textContent;
+            let regex = new RegExp(`(${state.source_symbol}\\s*[0-9\\s]+[.,]?[0-9]*|[0-9\\s]+[.,]?[0-9]*\\s*${state.source_symbol})`, 'g');
+    
+            let newContent = textContent.replace(regex, (match) => {
+                let value;
+                if (match.includes(state.source_symbol)) {
+                    value = parseFloat(match.replace(state.source_symbol, '').replace(' ', '').replace(',', '.').trim());
+                } else {
+                    value = parseFloat(match.replace(' ', '').replace(',', '.'));
+                }
+                return `${convert(value)} ₽ / ${value} ${state.source_symbol}`;
+            });
+    
+            let newNode = document.createTextNode(newContent);
+            n.parentNode.replaceChild(newNode, n);
+            console.log(newNode);
         }
     }
 
