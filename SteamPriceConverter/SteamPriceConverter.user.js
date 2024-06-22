@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.3
+// @version      0.4
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -22,6 +22,9 @@
     let state = {
         source_symbol: undefined
     }
+
+    const delay = (ms) => 
+        new Promise(resolve => setTimeout(resolve, ms));
 
     async function getRates() {
         const arr = await new Promise((resolve, reject) => {
@@ -62,12 +65,12 @@
             return;
         }
 
-        setTimeout(75);
+        await delay(75);
 
         const convert = (n) => +(n * rates[source_valute].value).toFixed(2);
         replace(convert);
 
-        GM_registerMenuCommand("update", () => replace(convert), "u");
+        // GM_registerMenuCommand("update", () => replace(convert), "u");
     }
 
     function replace(convert) {
