@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.2
+// @version      0.3
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -10,7 +10,7 @@
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     const SYMBOL_TO_CODE_MAPPING = {
@@ -28,7 +28,7 @@
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://www.cbr-xml-daily.ru/daily_utf8.xml',
-                onload: function(res) {
+                onload: function (res) {
                     const valutes = res.responseXML.getElementsByTagName('Valute');
                     resolve([...valutes].map((valute) => {
                         const charCode = valute.getElementsByTagName('CharCode')[0].textContent;
@@ -62,6 +62,8 @@
             return;
         }
 
+        setTimeout(75);
+
         const convert = (n) => +(n * rates[source_valute].value).toFixed(2);
         replace(convert);
 
@@ -69,12 +71,13 @@
     }
 
     function replace(convert) {
-        let r = document.evaluate(`//text()[contains(., \"${state.source_symbol}\")]`,document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let r = document.evaluate(`//text()[contains(., \"${state.source_symbol}\")]`, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < r.snapshotLength; i++) {
             let n = r.snapshotItem(i);
             const value = parseFloat(n.textContent.replace(" ", "").replace(',', '.'))
-            n.replaceWith(`${convert(value)} ₽`);
+
+            n.replaceWith(`${convert(value)} ₽ / ${value} ${state.source_symbol}`);
             console.log(n)
         }
     }
