@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.5
+// @version      0.6
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -23,7 +23,7 @@
         source_symbol: undefined
     }
 
-    const delay = (ms) => 
+    const delay = (ms) =>
         new Promise(resolve => setTimeout(resolve, ms));
 
     async function getRates() {
@@ -57,6 +57,29 @@
         return SYMBOL_TO_CODE_MAPPING[state.source_symbol];
     }
 
+    const observers = new WeakMap();
+    function addObserver(element, callback, config = { childList: true }) {
+        if (element && !observers.has(element)) {
+            const observer = new MutationObserver(callback);
+            observer.observe(element, config);
+            observers.set(element, observer);
+        }
+    }
+
+    function qs(...args) {
+        return document.querySelector(...args);
+    }
+
+    function debounce(callback, delay) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                callback(...args);
+            }, delay);
+        };
+    }
+
     async function main() {
         const rates = await getRates();
         const source_valute = getCurrentValute();
@@ -65,22 +88,48 @@
             return;
         }
 
-        await delay(75);
+        // await delay(75);
 
         const convert = (n) => +(n * rates[source_valute].value).toFixed(2);
-        replace(convert);
+        const execute = () => {
+            replace(convert);
+        }
+
+        const config = { childList: true, subtree: true };
+
+        function handle(mutationsList, observer) {
+            observer.disconnect();
+            execute();
+            observer.observe(document.body, config);
+        }
+
+        const debouncedCallback = debounce(handle, 300);
+
+        addObserver(document.body, debouncedCallback, config);
+
+        window.addEventListener('popstate', execute);
+        window.addEventListener('load', execute);
+        document.addEventListener('DOMContentLoaded', execute);
+
+        if (document.readyState == "complete" ||
+            document.readyState == "loaded" ||
+            document.readyState == "interactive"
+        ) {
+            execute();
+        }
 
         // GM_registerMenuCommand("update", () => replace(convert), "u");
     }
 
     function replace(convert) {
-        let r = document.evaluate(`//text()[contains(., \"${state.source_symbol}\")]`, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let xpath = `//text()[contains(., \"${state.source_symbol}\") and not(ancestor::*[@data-converted])]`;
+        let r = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < r.snapshotLength; i++) {
             let n = r.snapshotItem(i);
             let textContent = n.textContent;
             let regex = new RegExp(`(${state.source_symbol}\\s*[0-9\\s]+[.,]?[0-9]*|[0-9\\s]+[.,]?[0-9]*\\s*${state.source_symbol})`, 'g');
-    
+
             let newContent = textContent.replace(regex, (match) => {
                 let value;
                 if (match.includes(state.source_symbol)) {
@@ -90,8 +139,9 @@
                 }
                 return `${convert(value)} ₽ / ${value} ${state.source_symbol}`;
             });
-    
+
             let newNode = document.createTextNode(newContent);
+            n.parentNode.setAttribute('data-converted', 'true');
             n.parentNode.replaceChild(newNode, n);
             console.log(newNode);
         }
