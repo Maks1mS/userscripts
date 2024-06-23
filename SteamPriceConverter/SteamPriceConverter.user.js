@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Price Converter
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.6
+// @version      0.7
 // @description  Converts prices to rubles
 // @author       Maxim Slipenko
 // @match        https://store.steampowered.com/*
@@ -122,30 +122,42 @@
     }
 
     function replace(convert) {
-        let xpath = `//text()[contains(., \"${state.source_symbol}\") and not(ancestor::*[@data-converted])]`;
+        let xpath = `//text()[contains(., \"${state.source_symbol}\") and not(ancestor::*[@data-converted]) and not(ancestor::script)]`;
         let r = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
         for (let i = 0; i < r.snapshotLength; i++) {
             let n = r.snapshotItem(i);
             let textContent = n.textContent;
-            let regex = new RegExp(`(${state.source_symbol}\\s*[0-9\\s]+[.,]?[0-9]*|[0-9\\s]+[.,]?[0-9]*\\s*${state.source_symbol})`, 'g');
+            let regex = new RegExp(`(\\${state.source_symbol}\\s*[0-9\\s]+[.,]?[0-9]*(?:USD)?|[0-9\\s]*[.,]?[0-9]+\\s*\\${state.source_symbol})`, 'g');
 
             let newContent = textContent.replace(regex, (match) => {
                 let value;
-                if (match.includes(state.source_symbol)) {
-                    value = parseFloat(match.replace(state.source_symbol, '').replace(' ', '').replace(',', '.').trim());
+                let originalValue;
+                originalValue = match.replace(state.source_symbol, '').replace(' ', '').replace(',', '.').trim();
+                value = parseFloat(originalValue);
+
+                let convertedValue = convert(value);
+                let formattedConvertedValue;
+                let formattedOriginalValue;
+
+                if (match.trim().startsWith(state.source_symbol)) {
+                    formattedOriginalValue = `${state.source_symbol}${originalValue}`;
                 } else {
-                    value = parseFloat(match.replace(' ', '').replace(',', '.'));
+                    formattedOriginalValue = `${originalValue}${state.source_symbol}`;
                 }
-                return `${convert(value)} ₽ / ${value} ${state.source_symbol}`;
+
+                formattedConvertedValue = `${convertedValue}₽`;
+
+                return `${formattedConvertedValue} / ${formattedOriginalValue}`;
             });
 
             let newNode = document.createTextNode(newContent);
             n.parentNode.setAttribute('data-converted', 'true');
             n.parentNode.replaceChild(newNode, n);
-            console.log(newNode);
+            // console.log(newNode);
         }
     }
+
 
     main();
 })();
