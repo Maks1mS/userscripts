@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         БЕСПЛАТНЫЕ ПВЗ ОЗОН
 // @namespace    https://github.com/Maks1mS/userscripts
-// @version      0.2
-// @description  Заменяет партнерские ПВЗ на понятные адреса 
+// @version      0.2.1
+// @description  Заменяет партнерские ПВЗ на понятные адреса
 // @author       Maxim Slipenko
 // @match        https://www.ozon.ru/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ozon.ru
@@ -107,8 +107,9 @@
             const headerAddress = qs('[data-widget="addressBookBarWeb"] .tsBody400Small');
             const commonAddressBook = qsa('[data-widget="commonAddressBook"] .tsBody500Medium');
             const delivery = qsa('[data-widget="orderDeliveryDetails"] .tsBody500Medium');
+            const delivery2 = qsa('[data-widget="rfbsAddressInfo"] .tsBody500Medium');
 
-            const elements = [headerAddress, ...commonAddressBook, ...delivery];
+            const elements = [headerAddress, ...commonAddressBook, ...delivery, ...delivery2];
 
             elements.forEach(handleElement);
         }
@@ -150,7 +151,7 @@
             called = true;
             updateInfoALL();
             onSelectorAdd(document.body, [
-                '[data-widget="commonAddressBook"]', 
+                '[data-widget="commonAddressBook"]',
             ], updateInfoALL);
         }
 
