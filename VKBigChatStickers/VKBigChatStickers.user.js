@@ -14,12 +14,10 @@
 
     const style = `
     .sticker_img_wrapper {
-        display: inline-block; /* Обеспечивает подгонку размеров под содержимое */
         width: 256px;
         height: 256px;
     }
     img.StickerUGC {
-        display: block;
         height: 100%;
         width: 100%;
     }
