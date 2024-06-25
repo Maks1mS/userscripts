@@ -13,7 +13,7 @@
     'use strict';
 
     const style = `
-    .sticker_img_wrapper {
+    .sticker_img_wrapper:has(.StickerUGC) {
         width: 256px;
         height: 256px;
     }
